@@ -31,12 +31,12 @@ def mkdir():
 
 pool = ThreadPoolExecutor(max_workers=4)
 
-# Redirect STDOUT to file
-mkdir()
-log = datetime.now().strftime("logs/%Y-%m-%d_%H-%M-%S.log")
-file = open(log, 'wb')
 
 try:
+    # Redirect STDOUT to file
+    mkdir()
+    log = datetime.now().strftime("logs/%Y-%m-%d_%H-%M-%S.log")
+    file = open(log, 'wb')
     while True:
         line = server.stdout.readline()
         txt = line.decode('utf-8').strip()
@@ -61,20 +61,21 @@ try:
             }
 
             # Read last login time
-            last_login = players.get(username)
+            last_login = players.get(xuid)
             if last_login:
                 data["rawtext"].append({
                     "text":
                     "上次登录: %s" % last_login.strftime("%Y-%m-%d, %H:%M:%S")
                 })
-            players[username] = datetime.now()
+            players[xuid] = datetime.now()
 
             # Send command
             cmd = 'tellraw %s %s\n' % (username, json.dumps(data))
             print(cmd)
             pool.submit(motd, cmd)
 
-except Exception as e:
+except KeyboardInterrupt as e:
+    print("Shutting down server...")
     file.close()
     server.stdin.write(b'stop')
     server.stdin.flush()
